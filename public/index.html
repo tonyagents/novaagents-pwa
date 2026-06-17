@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <title>TripPilot</title>
+  <meta name="theme-color" content="#0e0b1a" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <!-- iOS home-screen app -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TripPilot" />
+  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+  <link rel="icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header id="bar">
+    <div class="brand"><span class="dot"></span> TripPilot</div>
+    <button id="reset" title="New trip" aria-label="New trip">＋</button>
+  </header>
+
+  <main id="chat" aria-live="polite"></main>
+
+  <form id="composer" autocomplete="off">
+    <textarea id="input" rows="1" placeholder="Where to? e.g. flights SFO → JFK Friday" enterkeyhint="send"></textarea>
+    <button id="send" type="submit" aria-label="Send">↑</button>
+  </form>
+
+  <!-- token gate -->
+  <div id="gate" hidden>
+    <div class="gate-card">
+      <h2>Connect</h2>
+      <p>Paste the access token shown in your Mac's terminal when the server started.</p>
+      <input id="token" type="password" placeholder="access token" />
+      <button id="save">Connect</button>
+      <div id="gate-err"></div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

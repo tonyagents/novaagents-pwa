@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output & caches
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Secrets / auth tokens
+.env
+.env.*
+!.env.example
+.token
+.tunnel-url
+.paybox-token.json
+
+# OS / logs
+.DS_Store
+*.log
+npm-debug.log*
