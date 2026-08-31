@@ -1,9 +1,9 @@
-// Paybox SIMULATION mode.
+// Paylink SIMULATION mode.
 //
-// An in-process MCP server that mimics the real Paybox tools — same tool names
-// (mcp__paybox__*), same result shapes — plus a local passkey-style approval page.
+// An in-process MCP server that mimics the real Paylink tools — same tool names
+// (mcp__paylink__*), same result shapes — plus a local passkey-style approval page.
 // Lets the whole booking flow run end-to-end with zero external dependencies, so
-// the demo is 100% reliable. Swap in the real Paybox MCP just by providing a token.
+// the demo is 100% reliable. Swap in the real Paylink MCP just by providing a token.
 
 import { createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
@@ -53,9 +53,9 @@ export function denyRequest(id, reason = "Declined by user") {
   return true;
 }
 
-export function createPayboxSim({ baseUrl }) {
+export function createPaylinkSim({ baseUrl }) {
   return createSdkMcpServer({
-    name: "paybox",
+    name: "paylink",
     version: "1.0.0-sim",
     tools: [
       tool(
@@ -105,7 +105,7 @@ export function createPayboxSim({ baseUrl }) {
         async (a) => {
           const r = requests.get(a.request_id);
           if (!r) return { content: [{ type: "text", text: JSON.stringify({ status: "error", message: "unknown request_id" }) }] };
-          // After approval, the real Paybox redacts the card here.
+          // After approval, the real Paylink redacts the card here.
           const body = { status: r.status, request_id: r.request_id };
           if (r.status === "denied") body.reason = r.reason;
           return { content: [{ type: "text", text: JSON.stringify(body) }] };
@@ -128,14 +128,14 @@ export function createPayboxSim({ baseUrl }) {
   });
 }
 
-// The local passkey-style approval page (stands in for the Paybox-hosted page).
+// The local passkey-style approval page (stands in for the Paylink-hosted page).
 export function approvalPageHtml(id) {
   const r = requests.get(id);
   if (!r) return `<!doctype html><meta charset=utf8><body style="font:16px -apple-system;background:#0e0b1a;color:#ece9f6;display:grid;place-items:center;height:100vh;margin:0">Unknown request.</body>`;
   const amt = `$${(r.amount_cents / 100).toFixed(2)}`;
   const done = r.status !== "pending_approval";
   return `<!doctype html><html><head><meta charset="utf8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Approve payment · Paybox</title>
+<title>Approve payment · Paylink</title>
 <style>
   :root{--accent:#7b61ff;--accent2:#a78bfa;--card:#1b1636;--bg:#0e0b1a;--text:#ece9f6;--muted:#9a93b8}
   *{box-sizing:border-box} html,body{margin:0;height:100%}
@@ -156,7 +156,7 @@ export function approvalPageHtml(id) {
 </style></head>
 <body><div class="card" id="card">
   ${done ? okBlock(r) : `
-  <span class="pill">🛡️ Paybox · passkey approval</span>
+  <span class="pill">🛡️ Paylink · passkey approval</span>
   <div class="amt">${amt}</div>
   <div class="merch">to ${escapeHtml(r.merchant)}</div>
   <div class="note">You're approving a <b>single-use virtual card</b> locked to ${escapeHtml(r.merchant)}. The agent never sees the card number.</div>

@@ -5,16 +5,16 @@ set -e
 cd "$(dirname "$0")"
 
 PORT="${PORT:-8790}"
-export PAYBOX_MCP_URL="${PAYBOX_MCP_URL:-https://api.paybox.sh/mcp}"
+export PAYLINK_MCP_URL="${PAYLINK_MCP_URL:-https://api.paylink.sh/mcp}"
 
-# Load the Paybox OAuth token if we've logged in before. If there's no token,
+# Load the Paylink OAuth token if we've logged in before. If there's no token,
 # the server runs in SIMULATION mode (full flow, offline) — no login required.
-# To use REAL Paybox: run `node paybox-auth.mjs` once, then start again.
-if [ -z "$PAYBOX_ACCESS_TOKEN" ] && [ -f .paybox-token.json ]; then
-  PAYBOX_ACCESS_TOKEN="$(node paybox-auth.mjs --print 2>/dev/null)" || true
-  export PAYBOX_ACCESS_TOKEN
+# To use REAL Paylink: run `node paylink-auth.mjs` once, then start again.
+if [ -z "$PAYLINK_ACCESS_TOKEN" ] && [ -f .paylink-token.json ]; then
+  PAYLINK_ACCESS_TOKEN="$(node paylink-auth.mjs --print 2>/dev/null)" || true
+  export PAYLINK_ACCESS_TOKEN
 fi
-[ -n "$PAYBOX_ACCESS_TOKEN" ] && echo "Paybox: LIVE token loaded ✓" || echo "Paybox: SIMULATION mode (run 'node paybox-auth.mjs' to go live)"
+[ -n "$PAYLINK_ACCESS_TOKEN" ] && echo "Paylink: LIVE token loaded ✓" || echo "Paylink: SIMULATION mode (run 'node paylink-auth.mjs' to go live)"
 
 # A stable app token so you only enter it once. Override by exporting NOVAAGENTS_TOKEN.
 if [ -z "$NOVAAGENTS_TOKEN" ]; then

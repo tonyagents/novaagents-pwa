@@ -1,9 +1,9 @@
 // Curated, realistic travel inventory for the TripPilot demo.
 //
 // This is deliberately static so the demo is rock-solid live and on video — the
-// "real" part of the demo is the Paybox card issuance + passkey approval, not the
+// "real" part of the demo is the Paylink card issuance + passkey approval, not the
 // flight search. Each option carries the merchant + merchant_url + price the agent
-// passes straight into Paybox `request_payment` so the issued one-time card is
+// passes straight into Paylink `request_payment` so the issued one-time card is
 // scoped to that exact merchant.
 
 const FLIGHTS = [

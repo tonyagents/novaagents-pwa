@@ -60,10 +60,10 @@ function scrollDown() { chat.scrollTop = chat.scrollHeight; }
 const TOOL_LABELS = {
   "travel__search_flights": "Searching flights",
   "travel__search_hotels": "Searching hotels",
-  "paybox__list_credentials": "Checking payment methods",
-  "paybox__request_payment": "Requesting approval",
-  "paybox__get_request": "Checking approval",
-  "paybox__claim_payment_credentials": "Issuing one-time card",
+  "paylink__list_credentials": "Checking payment methods",
+  "paylink__request_payment": "Requesting approval",
+  "paylink__get_request": "Checking approval",
+  "paylink__claim_payment_credentials": "Issuing one-time card",
 };
 
 let lastChip = null;
@@ -193,7 +193,7 @@ function bookingCard({ merchant, card }) {
   scrollDown();
 }
 
-// Find the first present key (searching nested objects) — Paybox output shapes
+// Find the first present key (searching nested objects) — Paylink output shapes
 // aren't fully documented, so be liberal about where fields live.
 function deepFind(obj, keys, depth = 0) {
   if (!obj || typeof obj !== "object" || depth > 5) return undefined;
@@ -226,10 +226,10 @@ function statusOf(out) {
 // --- tool event handling ---------------------------------------------------
 
 function handleToolStart(evt) {
-  if (evt.name === "paybox__request_payment") {
+  if (evt.name === "paylink__request_payment") {
     lastPaymentInput = evt.input || {};
   }
-  if (evt.name === "paybox__get_request" || evt.name === "paybox__claim_payment_credentials") {
+  if (evt.name === "paylink__get_request" || evt.name === "paylink__claim_payment_credentials") {
     const rid = evt.input?.request_id || evt.input?.requestId || evt.input?.id;
     if (rid) lastReqId = rid;
   }
@@ -252,7 +252,7 @@ function handleToolResult(evt) {
     if (Array.isArray(r) && r.length) renderCards(r, hotelCard);
     return;
   }
-  if (evt.name === "paybox__request_payment") {
+  if (evt.name === "paylink__request_payment") {
     const approval_url = deepFind(out, ["approval_url", "approvalUrl", "url"]);
     const request_id = deepFind(out, ["request_id", "requestId", "id"]);
     const st = statusOf(out);
@@ -268,7 +268,7 @@ function handleToolResult(evt) {
     }
     return;
   }
-  if (evt.name === "paybox__get_request") {
+  if (evt.name === "paylink__get_request") {
     const st = statusOf(out);
     const reason = deepFind(out, ["reason", "message"]);
     if (lastReqId && (st === "success" || st === "denied" || st === "error")) {
@@ -276,7 +276,7 @@ function handleToolResult(evt) {
     }
     return;
   }
-  if (evt.name === "paybox__claim_payment_credentials") {
+  if (evt.name === "paylink__claim_payment_credentials") {
     const merchant = (lastReqId && payments[lastReqId]?.merchant) || lastPaymentInput?.merchant;
     bookingCard({ merchant, card: extractCard(out) });
     return;

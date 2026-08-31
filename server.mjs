@@ -4,16 +4,16 @@ import os from "node:os";
 import { z } from "zod";
 import { query, createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
 import { searchFlights, searchHotels } from "./travel-inventory.mjs";
-import { createPayboxSim, approvalPageHtml, approveRequest, denyRequest } from "./paybox-sim.mjs";
+import { createPaylinkSim, approvalPageHtml, approveRequest, denyRequest } from "./paylink-sim.mjs";
 
 const PORT = process.env.PORT || 8790;
-const PAYBOX_MCP_URL = process.env.PAYBOX_MCP_URL || "https://api.paybox.sh/mcp";
-const PAYBOX_ACCESS_TOKEN = process.env.PAYBOX_ACCESS_TOKEN;
+const PAYLINK_MCP_URL = process.env.PAYLINK_MCP_URL || "https://api.paylink.sh/mcp";
+const PAYLINK_ACCESS_TOKEN = process.env.PAYLINK_ACCESS_TOKEN;
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || `http://localhost:${PORT}`;
 
-// Use real Paybox when a token is present (and sim isn't forced); otherwise simulate.
-const USE_SIM = !PAYBOX_ACCESS_TOKEN || process.env.PAYBOX_SIM === "1";
-const payboxSim = USE_SIM ? createPayboxSim({ baseUrl: PUBLIC_BASE_URL }) : null;
+// Use real Paylink when a token is present (and sim isn't forced); otherwise simulate.
+const USE_SIM = !PAYLINK_ACCESS_TOKEN || process.env.PAYLINK_SIM === "1";
+const paylinkSim = USE_SIM ? createPaylinkSim({ baseUrl: PUBLIC_BASE_URL }) : null;
 
 // --- Auth token for THIS app (gates the chat endpoint). ---
 let TOKEN = process.env.NOVAAGENTS_TOKEN;
@@ -28,14 +28,14 @@ if (!TOKEN) {
 
 // --- In-process "travel" MCP server: curated flight/hotel search. ---
 // Keeping inventory static makes the demo deterministic; the real moment is the
-// Paybox card + passkey approval, which these tools feed (merchant/url/amount).
+// Paylink card + passkey approval, which these tools feed (merchant/url/amount).
 const travelServer = createSdkMcpServer({
   name: "travel",
   version: "1.0.0",
   tools: [
     tool(
       "search_flights",
-      "Search available flights. Returns options with carrier, times, price, and the merchant + merchant_url to use when booking via Paybox.",
+      "Search available flights. Returns options with carrier, times, price, and the merchant + merchant_url to use when booking via Paylink.",
       { origin: z.string().optional(), destination: z.string().optional(), date: z.string().optional() },
       async (args) => {
         const results = searchFlights(args);
@@ -44,7 +44,7 @@ const travelServer = createSdkMcpServer({
     ),
     tool(
       "search_hotels",
-      "Search available hotels. Returns options with nightly rate and the merchant + merchant_url to use when booking via Paybox.",
+      "Search available hotels. Returns options with nightly rate and the merchant + merchant_url to use when booking via Paylink.",
       { city: z.string().optional(), checkin: z.string().optional(), nights: z.number().optional() },
       async (args) => {
         const results = searchHotels(args);
@@ -54,11 +54,11 @@ const travelServer = createSdkMcpServer({
   ],
 });
 
-const SYSTEM_PROMPT = `You are TripPilot, an autonomous travel-booking agent. You help the user find flights and hotels and book them — paying with a secure one-time virtual card minted by Paybox, which the user approves with a passkey. You never see or handle a real card number.
+const SYSTEM_PROMPT = `You are TripPilot, an autonomous travel-booking agent. You help the user find flights and hotels and book them — paying with a secure one-time virtual card minted by Paylink, which the user approves with a passkey. You never see or handle a real card number.
 
 # Tools
 - travel (search_flights, search_hotels): curated inventory. Each result includes "merchant", "merchant_url", and a price ("price_cents" / "nightly_cents"). ALWAYS use those exact values when booking — never invent merchants, prices, or card data.
-- paybox (list_credentials, request_payment, get_request, claim_payment_credentials): the payment broker.
+- paylink (list_credentials, request_payment, get_request, claim_payment_credentials): the payment broker.
 
 # How to handle a trip
 1. Use search_flights / search_hotels to find options. Present the options briefly; the UI renders rich cards from the tool results, so DO NOT re-list every field in prose — just give a one-line summary and ask which to book (or, if the user already said what to book, proceed).
@@ -73,7 +73,7 @@ const SYSTEM_PROMPT = `You are TripPilot, an autonomous travel-booking agent. Yo
 # Style
 - Concise. Lead with the answer. Short lines, no walls of text.
 - If multiple items are booked, do them in sequence (each needs its own approval) and confirm each.
-- If PAYBOX tools error with an auth problem, tell the user to re-run \`node paybox-auth.mjs\`.`;
+- If PAYLINK tools error with an auth problem, tell the user to re-run \`node paylink-auth.mjs\`.`;
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -96,7 +96,7 @@ app.use(express.static("public"));
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 app.get("/api/ping", authed, (_req, res) => res.json({ ok: true }));
 
-// --- Simulated passkey approval page (stands in for the Paybox-hosted page). ---
+// --- Simulated passkey approval page (stands in for the Paylink-hosted page). ---
 if (USE_SIM) {
   app.get("/approve", (req, res) => res.type("html").send(approvalPageHtml(String(req.query.rid || ""))));
   app.post("/api/sim/approve", (req, res) => res.json({ ok: approveRequest(String(req.query.rid || "")) }));
@@ -157,12 +157,12 @@ app.post("/api/chat", authed, async (req, res) => {
         systemPrompt: SYSTEM_PROMPT,
         mcpServers: {
           travel: travelServer,
-          paybox: USE_SIM
-            ? payboxSim
+          paylink: USE_SIM
+            ? paylinkSim
             : {
                 type: "http",
-                url: PAYBOX_MCP_URL,
-                headers: { Authorization: `Bearer ${PAYBOX_ACCESS_TOKEN}` },
+                url: PAYLINK_MCP_URL,
+                headers: { Authorization: `Bearer ${PAYLINK_ACCESS_TOKEN}` },
                 alwaysLoad: true,
                 timeout: 60000,
               },
@@ -222,5 +222,5 @@ app.listen(PORT, () => {
   console.log(`TripPilot server running:`);
   console.log(`  local:  http://localhost:${PORT}`);
   if (lan) console.log(`  LAN:    http://${lan}:${PORT}`);
-  console.log(`  Paybox: ${USE_SIM ? "SIMULATION mode (no token) — full flow runs offline" : `LIVE ✓ (${PAYBOX_MCP_URL})`}`);
+  console.log(`  Paylink: ${USE_SIM ? "SIMULATION mode (no token) — full flow runs offline" : `LIVE ✓ (${PAYLINK_MCP_URL})`}`);
 });

@@ -14,7 +14,7 @@ build/
 !.env.example
 .token
 .tunnel-url
-.paybox-token.json
+.paylink-token.json
 
 # OS / logs
 .DS_Store

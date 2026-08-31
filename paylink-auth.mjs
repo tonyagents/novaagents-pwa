@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Paybox OAuth 2.1 + PKCE helper.
+// Paylink OAuth 2.1 + PKCE helper.
 //
-//   node paybox-auth.mjs           → run the full browser login, save .paybox-token.json
-//   node paybox-auth.mjs --refresh → silently refresh the access token (no browser)
-//   node paybox-auth.mjs --print   → print a valid access token to stdout (refresh if needed)
+//   node paylink-auth.mjs           → run the full browser login, save .paylink-token.json
+//   node paylink-auth.mjs --refresh → silently refresh the access token (no browser)
+//   node paylink-auth.mjs --print   → print a valid access token to stdout (refresh if needed)
 //
-// Paybox is a public OAuth client (token_endpoint_auth_method: "none") with dynamic
+// Paylink is a public OAuth client (token_endpoint_auth_method: "none") with dynamic
 // client registration, so there's no secret to manage. The token file is gitignored.
 
 import http from "node:http";
@@ -15,9 +15,9 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-const ISSUER = process.env.PAYBOX_ISSUER || "https://api.paybox.sh";
-const TOKEN_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), ".paybox-token.json");
-const CALLBACK_PORT = Number(process.env.PAYBOX_CALLBACK_PORT || 8788);
+const ISSUER = process.env.PAYLINK_ISSUER || "https://api.paylink.sh";
+const TOKEN_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), ".paylink-token.json");
+const CALLBACK_PORT = Number(process.env.PAYLINK_CALLBACK_PORT || 8788);
 const REDIRECT_URI = `http://localhost:${CALLBACK_PORT}/callback`;
 const SCOPE = "mcp offline_access";
 
@@ -71,7 +71,7 @@ function awaitCallback(expectedState) {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(`<!doctype html><meta charset=utf8><title>TripPilot</title>
         <body style="font:16px -apple-system,sans-serif;background:#0e0b1a;color:#ece9f6;display:grid;place-items:center;height:100vh;margin:0">
-        <div style="text-align:center"><h2 style="color:#a78bfa">${err ? "Authorization failed" : "Paybox connected ✓"}</h2>
+        <div style="text-align:center"><h2 style="color:#a78bfa">${err ? "Authorization failed" : "Paylink connected ✓"}</h2>
         <p>${err ? err : "You can close this tab and return to the terminal."}</p></div>`);
       server.close();
       if (err) return reject(new Error(`authorize error: ${err}`));
@@ -129,7 +129,7 @@ async function login() {
     code_challenge_method: "S256",
   }).toString();
 
-  console.log("\n  Opening your browser to approve Paybox access…");
+  console.log("\n  Opening your browser to approve Paylink access…");
   console.log("  If it doesn't open, paste this URL:\n");
   console.log("  " + authUrl.toString() + "\n");
   const codeP = awaitCallback(state);
@@ -144,13 +144,13 @@ async function login() {
     code_verifier: verifier,
   });
   const saved = persist(tok, client_id);
-  console.log(`\n  ✓ Saved token to .paybox-token.json${saved.refresh_token ? " (with refresh token)" : ""}.\n`);
+  console.log(`\n  ✓ Saved token to .paylink-token.json${saved.refresh_token ? " (with refresh token)" : ""}.\n`);
   return saved;
 }
 
 async function refresh() {
   const cur = loadToken();
-  if (!cur?.refresh_token) throw new Error("no refresh_token on file — run `node paybox-auth.mjs` to log in");
+  if (!cur?.refresh_token) throw new Error("no refresh_token on file — run `node paylink-auth.mjs` to log in");
   const meta = await discover();
   const tok = await exchangeToken(meta, {
     grant_type: "refresh_token",
