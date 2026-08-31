@@ -16,10 +16,10 @@ const USE_SIM = !PAYBOX_ACCESS_TOKEN || process.env.PAYBOX_SIM === "1";
 const payboxSim = USE_SIM ? createPayboxSim({ baseUrl: PUBLIC_BASE_URL }) : null;
 
 // --- Auth token for THIS app (gates the chat endpoint). ---
-let TOKEN = process.env.MOONAGENTS_TOKEN;
+let TOKEN = process.env.NOVAAGENTS_TOKEN;
 if (!TOKEN) {
   TOKEN = crypto.randomBytes(16).toString("hex");
-  console.log("\n  No MOONAGENTS_TOKEN set — generated one for this run:");
+  console.log("\n  No NOVAAGENTS_TOKEN set — generated one for this run:");
   console.log("  ┌──────────────────────────────────────────────┐");
   console.log(`  │  ${TOKEN}  │`);
   console.log("  └──────────────────────────────────────────────┘");

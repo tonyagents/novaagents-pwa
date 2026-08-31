@@ -18,7 +18,7 @@ The **travel** inventory is curated/static so the demo is reliable live and on v
 ## One-time setup
 
 ```bash
-cd ~/moonagents-pwa
+cd ~/novaagents-pwa
 npm install                 # if you haven't already
 node paybox-auth.mjs        # opens a browser → approve Paybox access (OAuth 2.1 + PKCE)
 ```

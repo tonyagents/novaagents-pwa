@@ -1,7 +1,7 @@
 {
-  "name": "moonagents-pwa",
+  "name": "novaagents-pwa",
   "version": "1.0.0",
-  "description": "",
+  "description": "TripPilot — phone-accessible AI travel-booking agent PWA (Claude Agent SDK + MCP)",
   "main": "index.js",
   "scripts": {
     "start": "node server.mjs"

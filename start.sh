@@ -16,21 +16,21 @@ if [ -z "$PAYBOX_ACCESS_TOKEN" ] && [ -f .paybox-token.json ]; then
 fi
 [ -n "$PAYBOX_ACCESS_TOKEN" ] && echo "Paybox: LIVE token loaded ✓" || echo "Paybox: SIMULATION mode (run 'node paybox-auth.mjs' to go live)"
 
-# A stable app token so you only enter it once. Override by exporting MOONAGENTS_TOKEN.
-if [ -z "$MOONAGENTS_TOKEN" ]; then
+# A stable app token so you only enter it once. Override by exporting NOVAAGENTS_TOKEN.
+if [ -z "$NOVAAGENTS_TOKEN" ]; then
   if [ -f .token ]; then
-    MOONAGENTS_TOKEN="$(cat .token)"
+    NOVAAGENTS_TOKEN="$(cat .token)"
   else
-    MOONAGENTS_TOKEN="$(node -e "console.log(require('crypto').randomBytes(16).toString('hex'))")"
-    echo "$MOONAGENTS_TOKEN" > .token
+    NOVAAGENTS_TOKEN="$(node -e "console.log(require('crypto').randomBytes(16).toString('hex'))")"
+    echo "$NOVAAGENTS_TOKEN" > .token
   fi
-  export MOONAGENTS_TOKEN
+  export NOVAAGENTS_TOKEN
 fi
 
 echo "────────────────────────────────────────────────"
 echo " TripPilot — open http://localhost:$PORT"
 echo " Access token (paste once in the app):"
-echo "   $MOONAGENTS_TOKEN"
+echo "   $NOVAAGENTS_TOKEN"
 echo "────────────────────────────────────────────────"
 
 # Start the server in the background.
@@ -55,7 +55,7 @@ if command -v cloudflared >/dev/null 2>&1; then
       echo
       echo "╔════════════════════════════════════════════════════════════════╗"
       echo "║  Phone URL (changes each run):  $url"
-      echo "║  Token:  $MOONAGENTS_TOKEN"
+      echo "║  Token:  $NOVAAGENTS_TOKEN"
       echo "╚════════════════════════════════════════════════════════════════╝"
     fi
   done
